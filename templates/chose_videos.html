@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Select videos{% endblock %}
+{% block content %}
+
+    <div class="container">
+        <br>
+        <h4 class="text-center">Video list</h4>
+        <br>
+        <form method="POST" action="/select_videos" id="modifForm">
+            {{ form.hidden_tag() }}
+            {{ form.filterInput.label }}
+            {{ form.filterInput }}
+            {{ form.remplaceInput.label }}
+            {{ form.remplaceInput }}
+            <br>
+            <span id="selectedCount">0 selected videos</span>
+            <span id="priceDisplay">- Price : 0 €</span>
+            <script>
+                const selectedCountElement = document.getElementById('selectedCount');
+                const priceDisplayElement = document.getElementById('priceDisplay');
+                const pricePerVideo = 0.04;
+
+                const updatePrice = (selectedCount) => {
+                  const totalPrice = selectedCount * pricePerVideo;
+                  priceDisplayElement.textContent = `Price: ${totalPrice.toFixed(2)} €`;
+                };
+
+                selectedCountElement.addEventListener('DOMSubtreeModified', () => {
+                  const selectedCount = parseInt(selectedCountElement.textContent);
+                  if (!isNaN(selectedCount)) {
+                    updatePrice(selectedCount);
+                  }
+                });
+                updatePrice(0);
+            </script>
+            <br>
+            <br>
+            <button type="button" class="btn btn-primary" id="selectAll">Select all</button>
+            <br>
+            <button type="submit" class="btn btn-primary" id="submit">Make changes 🚧</button>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Title</th>
+                  <th>Description</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if video_info_list %}
+                  {% for video_id, video in video_info_list.items() %}
+                    <tr>
+                      <td><input type="checkbox" name="videos" value="{{ video_id }}"></td>
+                      <td>{{ video['title'] }}</td>
+                      <td>{{ video['description'] }}</td>
+                      <td>{{ video['published_date'] }}</td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
+              </tbody>
+            </table>
+        </form>
+    </div>
+    <script>
+      $(document).ready(function() {
+        $("#filterInput").on("keyup", function() {
+          var filterValue = $(this).val().toLowerCase();
+          $("tbody tr").each(function() {
+            var description = $(this).find("td:nth-child(3)").text().toLowerCase();
+            if (description.includes(filterValue)) {
+              $(this).show();
+            } else {
+              $(this).hide();
+            }
+          });
+        });
+
+        $("#selectAll").click(function() {
+          $("tbody tr:visible input[type='checkbox']").prop("checked", true);
+        });
+
+        function updateSelectedCount() {
+          var selectedCount = $("tbody tr:visible input[type='checkbox']:checked").length;
+          $("#selectedCount").text(selectedCount + " selected videos");
+        }
+
+        $("tbody input[type='checkbox']").change(function() {
+          updateSelectedCount();
+        });
+
+        $("#selectAll").click(function() {
+          $("tbody tr:visible input[type='checkbox']").prop("checked", true);
+          updateSelectedCount();
+        });
+      });
+      </script>
+
+{% endblock %}
